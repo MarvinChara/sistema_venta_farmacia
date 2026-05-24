@@ -66,8 +66,6 @@ class InscripcionView(ModelView):
     add_columns = ["matricula_nro", "alumno", "carrera", "fecha_registro"]
     edit_columns = add_columns
 
-    # Se eliminó la función add_form que causaba el conflicto interno con .refresh()
-    
     def pre_add(self, item):
         """ Asignación automática y segura del número correlativo antes de insertar a la BD """
         session = db.session
@@ -92,7 +90,6 @@ class PagoView(ModelView):
 # PLATAFORMA DE IA: MOTOR DE ANÁLISIS GENERATIVO LOGICIAL
 # ----------------------------------------------------
 def generar_analisis_ia(reporte_id, datos):
-    """ Función centralizada que procesa los datos reales de BD y genera conclusiones inteligentes de un Agente de IA """
     if reporte_id == 1:
         total_estudiantes = datos.get('total_estudiantes', 0)
         total_ingresos = datos.get('total_ingresos', 0)
@@ -115,7 +112,7 @@ def generar_analisis_ia(reporte_id, datos):
 
 
 # ----------------------------------------------------
-# REPORTES INTELIGENTES CON IA Y DISEÑO PERSONALIZADO
+# REPORTES INTELIGENTES CON IA Y ENLACE DE ESTILOS CORREGIDO
 # ----------------------------------------------------
 
 class Reporte1View(BaseView):
@@ -140,6 +137,7 @@ class Reporte1View(BaseView):
         html_template = """
         {% extends base_template %}
         {% block content %}
+        <link rel="stylesheet" href="/static/css/custom.css">
         <div class="container" style="margin-top: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <div class="well" style="background: linear-gradient(135deg, #2c3e50, #3498db); color: white; border: none; border-radius: 8px; padding: 15px;">
                 <h3><i class="fa fa-dashboard"></i> Reporte 1: Análisis General del Sistema Inteligente</h3>
@@ -219,6 +217,7 @@ class Reporte2View(BaseView):
         html_template = """
         {% extends base_template %}
         {% block content %}
+        <link rel="stylesheet" href="/static/css/custom.css">
         <div class="container" style="margin-top: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <div class="well" style="background: linear-gradient(135deg, #16a085, #2ecc71); color: white; border: none; border-radius: 8px; padding: 15px;">
                 <h3><i class="fa fa-line-chart"></i> Reporte 2: Tendencias y Comportamiento Demográfico</h3>
@@ -285,6 +284,7 @@ class Reporte3View(BaseView):
         html_template = """
         {% extends base_template %}
         {% block content %}
+        <link rel="stylesheet" href="/static/css/custom.css">
         <div class="container" style="margin-top: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <div class="well" style="background: linear-gradient(135deg, #d35400, #f39c12); color: white; border: none; border-radius: 8px; padding: 15px;">
                 <h3><i class="fa fa-magic"></i> Reporte 3: Predicción de Demanda y Recomendación IA</h3>
@@ -336,14 +336,12 @@ class Reporte3View(BaseView):
 
 
 # ----------------------------------------------------
-# REGISTRO DE MENÚS (ESTRUCTURA COMPLETA EXAMEN FINAL)
+# REGISTRO DE MENÚS CON ÍCONOS EN CATEGORÍAS PRINCIPALES
 # ----------------------------------------------------
-appbuilder.add_view(CarreraView, "Programas Académicos", icon="fa-graduation-cap", category="Oferta Académica")
-appbuilder.add_view(AlumnoView, "Expediente de Alumnos", icon="fa-users", category="Gestión de Estudiantes")
-appbuilder.add_view(InscripcionView, "1. Formulario de Inscripción", icon="fa-file-text", category="Admisiones")
-appbuilder.add_view(PagoView, "2. Caja y Control de Pagos", icon="fa-money", category="Admisiones")
-
-# Nuevos accesos de la barra superior acoplados al framework sin errores
-appbuilder.add_view(Reporte1View, "1. Análisis General (IA)", icon="fa-dashboard", category="Reportes e Indicadores")
-appbuilder.add_view(Reporte2View, "2. Tendencias de Datos (IA)", icon="fa-line-chart", category="Reportes e Indicadores")
-appbuilder.add_view(Reporte3View, "3. Predicción Avanzada (IA)", icon="fa-magic", category="Reportes e Indicadores")
+appbuilder.add_view(CarreraView, "Programas Académicos", icon="fa-graduation-cap", category="Oferta Académica", category_icon="fa-graduation-cap")
+appbuilder.add_view(AlumnoView, "Expediente de Alumnos", icon="fa-user", category="Gestión de Estudiantes", category_icon="fa-users")
+appbuilder.add_view(InscripcionView, "1. Formulario de Inscripción", icon="fa-file-text", category="Admisiones", category_icon="fa-folder-open")
+appbuilder.add_view(PagoView, "2. Caja y Control de Pagos", icon="fa-money", category="Admisiones", category_icon="fa-folder-open")
+appbuilder.add_view(Reporte1View, "1. Análisis General (IA)", icon="fa-dashboard", category="Reportes Estadísticos", category_icon="fa-bar-chart")
+appbuilder.add_view(Reporte2View, "2. Tendencias de Datos (IA)", icon="fa-line-chart", category="Reportes Estadísticos", category_icon="fa-bar-chart")
+appbuilder.add_view(Reporte3View, "3. Predicción Avanzada (IA)", icon="fa-magic", category="Reportes Estadísticos", category_icon="fa-bar-chart")
