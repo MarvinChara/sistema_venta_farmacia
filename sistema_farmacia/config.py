@@ -12,7 +12,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 SECRET_KEY = "sistema_farmacia2026_marvinchara"
 
 # The SQLAlchemy connection string.
-SQLALCHEMY_DATABASE_URI = "mysql://root:12345678@localhost/bdfarmacia"
+SQLALCHEMY_DATABASE_URI = "mysql://root:12345678@localhost/bdsistema_inscripcion"
 # SQLALCHEMY_DATABASE_URI = 'mysql://myapp@localhost/myapp'
 # SQLALCHEMY_DATABASE_URI = 'postgresql://root:password@localhost/myapp'
 
@@ -23,7 +23,7 @@ CSRF_ENABLED = True
 # GLOBALS FOR APP Builder
 # ------------------------------
 # Uncomment to setup Your App name
-# APP_NAME = "My App Name"
+APP_NAME = "Instituto Tecnico Profesional ITEP"
 
 # Uncomment to setup Setup an App icon
 # APP_ICON = "static/img/logo.jpg"

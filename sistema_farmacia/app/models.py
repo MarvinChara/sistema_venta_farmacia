@@ -1,115 +1,88 @@
-from datetime import datetime
+from datetime import datetime, date
 from flask_appbuilder import Model
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, event
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, event, func
 from sqlalchemy.orm import relationship
 
-class Categoria(Model):
-    __tablename__ = 'categoria'
+class Carrera(Model):
+    __tablename__ = 'carrera'
     id = Column(Integer, primary_key=True)
-    nombre = Column(String(50), unique=True, nullable=False)
+    nombre = Column(String(100), unique=True, nullable=False)
+    nivel_academico = Column(String(50), nullable=False)
+    duracion = Column(String(30), nullable=False)
     descripcion = Column(String(250))
 
     def __repr__(self):
         return self.nombre
 
-class Medicamento(Model):
-    __tablename__ = 'medicamento'
+
+class Alumno(Model):
+    __tablename__ = 'alumno'
     id = Column(Integer, primary_key=True)
-    nombre = Column(String(100), nullable=False)
-    descripcion = Column(String(250))
-    precio = Column(Float, nullable=False)
-    stock = Column(Integer, nullable=False)
-    fecha_vencimiento = Column(Date, nullable=False)
+    ci = Column(String(20), unique=True, nullable=False)
+    nombres = Column(String(100), nullable=False)
+    apellidos = Column(String(100), nullable=False)
+    genero = Column(String(20), nullable=False)
+    fecha_nacimiento = Column(Date, nullable=False)
+    edad = Column(Integer, nullable=False, default=0)
+    lugar_nacimiento = Column(String(50), nullable=False)
+    telefono = Column(String(20))
+    direccion = Column(String(150))
+    correo_electronico = Column(String(100))
+    colegio_procedencia = Column(String(100))
     
-    categoria_id = Column(Integer, ForeignKey('categoria.id'), nullable=False)
-    categoria = relationship("Categoria")
+    nombre_tutor = Column(String(100), nullable=False)
+    direccion_tutor = Column(String(150))
+    telefono_tutor = Column(String(20))
 
     def __repr__(self):
-        return f"{self.nombre} (Stock: {self.stock} | Precio: {self.precio} Bs.)"
+        return f"{self.apellidos} {self.nombres} (CI: {self.ci})"
 
-class Venta(Model):
-    __tablename__ = 'venta'
+
+class Inscripcion(Model):
+    __tablename__ = 'inscripcion'
     id = Column(Integer, primary_key=True)
-    fecha = Column(Date, default=datetime.utcnow, nullable=False)
-    total = Column(Float, default=0.0)
+    matricula_nro = Column(String(30), unique=True, nullable=False, default="0000")
+    fecha_registro = Column(Date, default=date.today, nullable=False)
     
-    # Relación inversa para poder sumar los detalles fácilmente
-    detalles = relationship("DetalleVenta", back_populates="venta", cascade="all, delete-orphan")
+    alumno_id = Column(Integer, ForeignKey('alumno.id'), nullable=False)
+    alumno = relationship("Alumno")
+    
+    carrera_id = Column(Integer, ForeignKey('carrera.id'), nullable=False)
+    carrera = relationship("Carrera")
 
     def __repr__(self):
-        return f"Factura Nro {self.id} - {self.fecha} (Total: {self.total} Bs.)"
+        return f"Matrícula: {self.matricula_nro} | {self.alumno.apellidos} {self.alumno.nombres} [{self.carrera.nombre}]"
 
-class DetalleVenta(Model):
-    __tablename__ = 'detalle_venta'
+
+class Pago(Model):
+    __tablename__ = 'pago'
     id = Column(Integer, primary_key=True)
-    venta_id = Column(Integer, ForeignKey('venta.id'), nullable=False)
-    medicamento_id = Column(Integer, ForeignKey('medicamento.id'), nullable=False)
-    cantidad = Column(Integer, nullable=False)
-    precio_unitario = Column(Float, default=0.0)
-    subtotal = Column(Float, default=0.0)
-
-    venta = relationship("Venta", back_populates="detalles")
-    medicamento = relationship("Medicamento")
+    monto_matricula = Column(Float, nullable=False, default=0.0)
+    concepto = Column(String(100), default="Pago de Matrícula Inicial")
+    fecha_pago = Column(Date, default=date.today, nullable=False)
+    
+    inscripcion_id = Column(Integer, ForeignKey('inscripcion.id'), nullable=False)
+    inscripcion = relationship("Inscripcion")
 
     def __repr__(self):
-        return f"Item {self.id} - Cantidad: {self.cantidad}"
+        return f"Recibo {self.id} - Monto: {self.monto_matricula} Bs."
 
 
 # ====================================================
-# DISPARADORES / EVENTOS AUTOMÁTICOS (LOGICA DE NEGOCIO)
+# DISPARADORES AUTOMÁTICOS CORREGIDOS
 # ====================================================
 
-@event.listens_for(DetalleVenta, 'before_insert')
-@event.listens_for(DetalleVenta, 'before_update')
-def calcular_subtotal_y_descontar_stock(mapper, connection, target):
-    """
-    Antes de guardar el detalle:
-    1. Si el usuario NO especificó un precio manual, jala el precio base del medicamento.
-    2. Calcula el subtotal basándose en el precio final (que puede ser modificado).
-    3. Resta la cantidad vendida del stock disponible.
-    """
-    # 1. Obtener los datos actuales del medicamento
-    medicamento = connection.execute(
-        Medicamento.__table__.select().where(Medicamento.__table__.c.id == target.medicamento_id)
-    ).fetchone()
-    
-    if medicamento:
-        # LÓGICA DE PRECIO MODIFICABLE: 
-        # Si el usuario no escribió un precio (es None o 0), usamos el precio de lista.
-        # Si escribió algo (ej: aplicó un descuento), respetamos su precio manual.
-        if target.precio_unitario is None or float(target.precio_unitario) == 0.0:
-            target.precio_unitario = medicamento.precio
-            
-        # 2. Calcular el subtotal con el precio definitivo
-        target.subtotal = float(target.cantidad) * float(target.precio_unitario)
-        
-        # 3. Restar del stock físico
-        nuevo_stock = medicamento.stock - target.cantidad
-        connection.execute(
-            Medicamento.__table__.update().
-            where(Medicamento.__table__.c.id == target.medicamento_id).
-            values(stock=nuevo_stock)
-        )
+@event.listens_for(Alumno, 'before_insert')
+@event.listens_for(Alumno, 'before_update')
+def calcular_edad_al_guardar(mapper, connection, target):
+    if target.fecha_nacimiento:
+        hoy = date.today()
+        nacimiento = target.fecha_nacimiento
+        target.edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
 
-def actualizar_total_venta(connection, venta_id):
-    """ Función auxiliar para sumar todos los subtotales de una factura """
-    # Sumar todos los subtotales correspondientes a la venta_id
-    resultado = connection.execute(
-        DetalleVenta.__table__.select().where(DetalleVenta.__table__.c.venta_id == venta_id)
-    ).fetchall()
-    
-    gran_total = sum(float(fila.subtotal) for fila in resultado)
-    
-    # Actualizar el campo 'total' de la cabecera (Venta)
-    connection.execute(
-        Venta.__table__.update().
-        where(Venta.__table__.c.id == venta_id).
-        values(total=gran_total)
-    )
-
-@event.listens_for(DetalleVenta, 'after_insert')
-@event.listens_for(DetalleVenta, 'after_update')
-@event.listens_for(DetalleVenta, 'after_delete')
-def disparar_actualizacion_total(mapper, connection, target):
-    """ Después de cualquier cambio en los detalles, recalcula el total de la factura """
-    actualizar_total_venta(connection, target.venta_id)
+@event.listens_for(Inscripcion, 'before_insert')
+def asegurar_matricula(mapper, connection, target):
+    if not target.matricula_nro or target.matricula_nro in ["0000", "", None]:
+        max_id = connection.execute(func.max(Inscripcion.id)).scalar()
+        siguiente = 1 if max_id is None else max_id + 1
+        target.matricula_nro = f"{siguiente:04d}"

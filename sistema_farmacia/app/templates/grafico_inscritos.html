@@ -1,0 +1,116 @@
+{% extends "appbuilder/base.html" %}
+{% block content %}
+<div class="container-fluid" style="padding: 25px;">
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="well" style="background-color: #2c3e50; color: white; border-radius: 5px; padding: 15px;">
+                <h2><i class="fa fa-dashboard"></i> Panel de Indicadores de Gestión - Instituto ITEP</h2>
+                <p>Estadísticas institucionales actualizadas en tiempo real.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="font-weight: bold; background-color: #337ab7; color: white;">
+                    <i class="fa fa-graduation-cap"></i> Cantidad de Estudiantes por Carrera
+                </div>
+                <div class="panel-body">
+                    <div style="position: relative; height: 280px;">
+                        <canvas id="chartCarreras"></canvas>
+                    </div>
+                    <hr>
+                    <p style="font-size: 15px;">Total de Matriculados: <strong class="label label-primary" style="font-size: 14px;">{{ total_inscritos }} Estudiantes</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="font-weight: bold; background-color: #5cb85c; color: white;">
+                    <i class="fa fa-users"></i> Distribución de Matrícula por Género
+                </div>
+                <div class="panel-body">
+                    <div style="position: relative; height: 280px;">
+                        <canvas id="chartGenero"></canvas>
+                    </div>
+                    <hr>
+                    <p style="font-size: 15px;">Análisis de diversidad de la población estudiantil.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="font-weight: bold; background-color: #f0ad4e; color: white;">
+                    <i class="fa fa-money"></i> Flujo de Recaudación en Caja por Conceptos
+                </div>
+                <div class="panel-body">
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="chartPagos"></canvas>
+                    </div>
+                    <hr>
+                    <p style="font-size: 16px;">Total Recaudado en Caja: <strong style="color: #d9534f; font-size: 18px;">{{ total_caja }} Bs.</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 1. Renderizado del Gráfico de Carreras (Barras Verticales)
+    const rawCarreras = {{ datos_carreras | tojson }};
+    new Chart(document.getElementById('chartCarreras').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: rawCarreras.map(x => x[0]),
+            datasets: [{
+                label: 'Alumnos Inscritos',
+                data: rawCarreras.map(x => x[1]),
+                backgroundColor: 'rgba(51, 122, 183, 0.7)',
+                borderColor: 'rgba(51, 122, 183, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+
+    // 2. Renderizado del Gráfico de Género (Torta / Donut)
+    const rawGenero = {{ datos_genero | tojson }};
+    new Chart(document.getElementById('chartGenero').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: rawGenero.map(x => x[0]),
+            datasets: [{
+                data: rawGenero.map(x => x[1]),
+                backgroundColor: ['#3498db', '#e74c3c'],
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // 3. Renderizado del Gráfico de Caja (Barras Horizontales)
+    const rawPagos = {{ datos_pagos | tojson }};
+    new Chart(document.getElementById('chartPagos').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: rawPagos.map(x => x[0]),
+            datasets: [{
+                label: 'Ingresos (Bs.)',
+                data: rawPagos.map(x => x[1]),
+                backgroundColor: 'rgba(240, 173, 78, 0.7)',
+                borderColor: 'rgba(240, 173, 78, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+    });
+</script>
+{% endblock %}
